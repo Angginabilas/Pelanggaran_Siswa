@@ -1,496 +1,265 @@
 @extends('layouts.dashboard')
 
-@section('title', 'Form Pelanggaran')
+@section('title', 'Data Pelanggaran')
 
 @section('content')
-
 <style>
-
-/* CONTAINER */
-
-.form-container{
-    width:900px;
-    margin:30px auto;
-    background:#e5e5e5;
-    padding:25px;
-    min-height:500px;
-}
-
-
-h3{
-    margin-top:0;
-    font-size:18px;
-    font-weight:normal;
-}
-
-
-/* Baris form */
-
-.form-row{
-    display:flex;
-    gap:40px;
-    margin-bottom:20px;
-}
-
-
-/* Grup input */
-
-.form-group{
-    width:50%;
-    display:flex;
-    align-items:center;
-}
-
-
-
-.form-group label{
-    width:120px;
-    font-size:14px;
-}
-
-
-
-
-.form-group input,
-.form-group select{
-    flex:1;
-    height:35px;
-    border:none;
-    background:#d6d6d6;
-    padding:5px;
-}
-
-
-
-
-/* Textarea */
-
-.full-group{
-    display:flex;
-    align-items:flex-start;
-    margin-top:15px;
-    margin-bottom:20px;
-}
-
-
-
-.full-group label{
-    width:120px;
-    font-size:14px;
-}
-
-
-
-.full-group textarea{
-    flex:1;
-    height:70px;
-    border:none;
-    background:#d6d6d6;
-    padding:8px;
-    resize:none;
-}
-
-
-
-
-
-/* Poin */
-
-.poin-box{
-    position:relative;
-    flex:1;
-}
-
-
-.poin-box input{
-    width:100%;
-    height:35px;
-    border:none;
-    background:#d6d6d6;
-    padding:5px;
-}
-
-
-
-.icon{
-    position:absolute;
-    right:5px;
-    top:5px;
-    width:25px;
-    height:25px;
-    background:#aaa;
-    display:flex;
-    justify-content:center;
-    align-items:center;
-}
-
-
-
-/* Tombol */
-
-.submit-area{
-    text-align:right;
-    margin-top:50px;
-}
-
-
-
-button{
-    background:#25d6e6;
-    border:none;
-    padding:10px 30px;
-    border-radius:5px;
-    cursor:pointer;
-}
-
-
-
-button:hover{
-    background:#1abac8;
-}
-
-
+    .row-click { cursor: pointer; transition: background 0.15s; }
+    .row-click:hover { background: #eef2ff !important; }
+    .action-btn-group { white-space: nowrap; }
+    .slider-wrapper { display: flex; align-items: center; gap: 12px; }
+    .slider-wrapper input[type=range] { flex: 1; height: 6px; -webkit-appearance: none; appearance: none; background: #e2e8f0; border-radius: 3px; outline: none; }
+    .slider-wrapper input[type=range]::-webkit-slider-thumb { -webkit-appearance: none; appearance: none; width: 20px; height: 20px; border-radius: 50%; background: #4f46e5; cursor: pointer; border: 2px solid #fff; box-shadow: 0 1px 4px rgba(0,0,0,0.2); }
+    .slider-value { min-width: 36px; height: 36px; background: #4f46e5; color: #fff; border-radius: 10px; display: flex; align-items: center; justify-content: center; font-weight: 700; font-size: 0.9rem; }
+    .file-preview-box { border: 1px solid #e2e8f0; border-radius: 12px; overflow: hidden; background: #f8fafc; }
+    .file-preview-box img { width: 100%; max-height: 200px; object-fit: contain; display: block; border-radius:8px; }
+    .file-preview-box iframe { width: 100%; height: 200px; border: none; border-radius:8px; }
+    .file-preview-box .file-placeholder { padding: 20px; text-align: center; color: var(--gray); font-size:0.85rem; }
 </style>
 
-<div class="form-container">
+<div class="card-modern">
+    <div class="card-body p-4">
+        <div class="d-flex justify-content-between align-items-center mb-4">
+            <div>
+                <h5 class="fw-bold mb-0" style="color:var(--dark);">Data Pelanggaran</h5>
+                <small style="color:var(--gray);">Catat dan kelola pelanggaran siswa</small>
+            </div>
+            @if(Auth::user()->role === 'admin')
+            <button class="btn-primary-modern" data-bs-toggle="modal" data-bs-target="#modalCreate"><i class="bi bi-plus-lg"></i> Tambah</button>
+            @endif
+        </div>
 
-@if(session('success'))
-<div class="alert alert-success">
-    {{ session('success') }}
-</div>
-@endif
-
-
-<form action="{{ route('pelanggaran.store') }}" 
-      method="POST"
-      enctype="multipart/form-data">
-
-
-@csrf
-
-<!-- Baris 1 -->
-
-<div class="form-row">
-
-
-<div class="form-group">
-
-<label>Nama Siswa</label>
-
-<input 
-type="text"
-name="nama_siswa"
-required>
-
-</div>
-
-
-<div class="form-group">
-
-<label>Kelas</label>
-
-<input 
-type="text"
-name="kelas"
-required>
-
-</div>
-
-
-</div>
-
-
-<!-- Baris 2 -->
-
-<div class="form-row">
-
-
-<div class="form-group">
-
-<label>Tanggal</label>
-
-<input 
-type="date"
-name="tanggal"
-required>
-
+        <div class="table-responsive">
+            <table class="table-modern">
+                <thead>
+                    <tr>
+                        <th>No</th>
+                        <th>Nama</th>
+                        <th>Kelas</th>
+                        <th>Kategori</th>
+                        <th>Pelanggaran</th>
+                        <th>Tanggal</th>
+                        <th>Poin</th>
+                        <th>Sanksi</th>
+                        <th>File</th>
+                        @if(Auth::user()->role === 'admin')<th style="text-align:center;">Aksi</th>@endif
+                    </tr>
+                </thead>
+                <tbody>
+                    @forelse($pelanggarans as $d)
+                    <tr class="row-click" onclick="showDetail({{ $d->id }})" data-bs-toggle="modal" data-bs-target="#modalDetail">
+                        <td>{{ $pelanggarans->firstItem() + $loop->index }}</td>
+                        <td><strong>{{ $d->nama_siswa }}</strong></td>
+                        <td>{{ $d->kelas }}</td>
+                        <td>@php $b=match($d->kategori){'Ringan'=>'bg-success','Sedang'=>'bg-warning text-dark','Berat'=>'bg-danger',default=>'bg-secondary'}; @endphp <span class="badge {{ $b }}">{{ $d->kategori }}</span></td>
+                        <td>{{ Str::limit($d->pelanggaran, 30) }}</td>
+                        <td>{{ date('d/m/Y', strtotime($d->tanggal)) }}</td>
+                        <td><span class="badge bg-info text-dark">{{ $d->poin }}</span></td>
+                        <td>{{ Str::limit($d->sanksi, 20) }}</td>
+                        <td>@if($d->file)<span class="badge bg-success">ada</span>@else<span style="color:var(--gray);">-</span>@endif</td>
+                        @if(Auth::user()->role === 'admin')
+                        <td style="text-align:center;"><div class="action-btn-group" onclick="event.stopPropagation()">
+                            <button class="btn-sm-modern btn-edit" onclick="openEdit({{ $d->id }})" data-bs-toggle="modal" data-bs-target="#modalEdit"><i class="bi bi-pencil"></i></button>
+                            <button class="btn-sm-modern btn-delete" onclick="confirmDelete({{ $d->id }},'{{ $d->nama_siswa }}')" data-bs-toggle="modal" data-bs-target="#modalConfirm"><i class="bi bi-trash"></i></button>
+                        </div></td>
+                        @endif
+                    </tr>
+                    @empty
+                    <tr><td colspan="{{ Auth::user()->role === 'admin' ? 10 : 9 }}" style="text-align:center;padding:40px;color:var(--gray);"><i class="bi bi-inbox" style="font-size:2rem;display:block;margin-bottom:8px;"></i>Belum ada data pelanggaran</td></tr>
+                    @endforelse
+                </tbody>
+            </table>
+        </div>
+        <div class="mt-3 pagination-modern">{{ $pelanggarans->links() }}</div>
+    </div>
 </div>
 
-
-<div class="form-group">
-
-<label>Kategori</label>
-
-
-<select name="kategori" required>
-
-<option value="">
--- Pilih --
-</option>
-
-<option value="Ringan">
-Ringan
-</option>
-
-<option value="Sedang">
-Sedang
-</option>
-
-<option value="Berat">
-Berat
-</option>
-
-</select>
-
-
+<!-- ======== MODAL DETAIL ======== -->
+<div class="modal fade" id="modalDetail" tabindex="-1">
+    <div class="modal-dialog modal-xl modal-dialog-centered">
+        <div class="modal-content" style="border:none;border-radius:16px;">
+            <div class="modal-body p-0">
+                <div style="display:flex;min-height:380px;">
+                    <!-- KIRI: info -->
+                    <div style="flex:1;padding:28px;">
+                        <div style="display:flex;align-items:center;gap:16px;margin-bottom:24px;">
+                            <div style="width:52px;height:52px;background:#fef2f2;border-radius:14px;display:flex;align-items:center;justify-content:center;font-size:1.4rem;flex-shrink:0;"><i class="bi bi-lightning-charge" style="color:#dc2626;"></i></div>
+                            <div>
+                                <h5 class="fw-bold mb-0" id="dNama">-</h5>
+                                <span style="font-size:0.85rem;color:var(--gray);" id="dKelas">-</span>
+                                <span class="badge" style="background:#4f46e5;margin-left:6px;" id="dKategori">-</span>
+                            </div>
+                        </div>
+                        <table style="width:100%;">
+                            <tr><td style="padding:8px 0;color:var(--gray);font-size:0.85rem;width:130px;">Tanggal</td><td style="padding:8px 0;font-weight:600;" id="dTgl">-</td></tr>
+                            <tr><td style="padding:8px 0;color:var(--gray);font-size:0.85rem;border-top:1px solid #f1f5f9;">Pelanggaran</td><td style="padding:8px 0;font-weight:600;border-top:1px solid #f1f5f9;" id="dPel">-</td></tr>
+                            <tr id="dKeteranganRow"><td style="padding:8px 0;color:var(--gray);font-size:0.85rem;border-top:1px solid #f1f5f9;">Keterangan</td><td style="padding:8px 0;font-weight:500;border-top:1px solid #f1f5f9;color:var(--gray);font-size:0.9rem;" id="dKet">-</td></tr>
+                            <tr><td style="padding:8px 0;color:var(--gray);font-size:0.85rem;border-top:1px solid #f1f5f9;">Poin</td><td style="padding:8px 0;border-top:1px solid #f1f5f9;" id="dPoin"></td></tr>
+                            <tr><td style="padding:8px 0;color:var(--gray);font-size:0.85rem;border-top:1px solid #f1f5f9;">Sanksi</td><td style="padding:8px 0;font-weight:600;border-top:1px solid #f1f5f9;" id="dSanksi">-</td></tr>
+                        </table>
+                    </div>
+                    <!-- KANAN: bukti -->
+                    <div style="width:320px;flex-shrink:0;background:#fafafa;padding:28px;border-left:1px solid #f1f5f9;display:flex;flex-direction:column;">
+                        <small style="color:var(--gray);font-weight:600;text-transform:uppercase;letter-spacing:0.5px;margin-bottom:10px;">Bukti</small>
+                        <div id="dFile" class="file-preview-box" style="flex:1;"><div class="file-placeholder">Tidak ada file</div></div>
+                    </div>
+                </div>
+            </div>
+            <div class="modal-footer justify-content-center border-0 pt-0 pb-3"><button type="button" class="btn btn-light px-4" data-bs-dismiss="modal" style="border-radius:10px;font-weight:500;">Tutup</button></div>
+        </div>
+    </div>
 </div>
 
-
+@if(Auth::user()->role === 'admin')
+<!-- ======== MODAL CREATE ======== -->
+<div class="modal fade modal-custom" id="modalCreate" tabindex="-1">
+    <div class="modal-dialog modal-xl modal-dialog-centered">
+        <div class="modal-content">
+            <div class="modal-header"><h5 class="modal-title fw-bold"><i class="bi bi-plus-lg me-2"></i>Tambah Pelanggaran</h5><button type="button" class="btn-close" data-bs-dismiss="modal"></button></div>
+            <form action="{{ route('Pelanggaran.store') }}" method="POST" enctype="multipart/form-data">@csrf
+                <div class="modal-body">
+                    <div class="row">
+                        <div class="col-md-6">
+                            <div class="mb-3">
+                                <label class="form-label">Nama Siswa <span class="text-danger">*</span></label>
+                                <select name="nama_siswa" class="form-select" required onchange="fillKelas(this,'cKelas')">
+                                    <option value="">-- Pilih --</option>
+                                    @foreach($siswaList as $s)<option value="{{ $s->nama_siswa }}" data-kelas="{{ $s->kelas }}">{{ $s->nama_siswa }} ({{ $s->kelas }})</option>@endforeach
+                                </select>
+                            </div>
+                            <div class="mb-3"><label class="form-label">Kelas</label><input type="text" id="cKelas" name="kelas" class="form-control" readonly required></div>
+                            <div class="mb-3"><label class="form-label">Tanggal <span class="text-danger">*</span></label><input type="date" name="tanggal" class="form-control" value="{{ date('Y-m-d') }}" required></div>
+                            <div class="mb-3"><label class="form-label">Kategori <span class="text-danger">*</span></label>
+                                <select name="kategori" class="form-select" required>
+                                    <option value="">-- Pilih --</option>
+                                    <option value="Ringan">Ringan</option>
+                                    <option value="Sedang">Sedang</option>
+                                    <option value="Berat">Berat</option>
+                                </select>
+                            </div>
+                            <div class="mb-3"><label class="form-label">Upload Bukti</label><input type="file" name="file" class="form-control" accept=".pdf,.jpg,.jpeg,.png"></div>
+                        </div>
+                        <div class="col-md-6">
+                            <div class="mb-3"><label class="form-label">Pelanggaran <span class="text-danger">*</span></label><textarea name="pelanggaran" class="form-control" rows="2" required placeholder="Deskripsi pelanggaran"></textarea></div>
+                            <div class="mb-3"><label class="form-label">Keterangan <small style="color:var(--gray);">(opsional)</small></label><textarea name="keterangan" class="form-control" rows="2" placeholder="Kronologi atau catatan tambahan"></textarea></div>
+                            <div class="mb-3">
+                                <label class="form-label">Poin <span class="text-danger">*</span></label>
+                                <div class="slider-wrapper">
+                                    <input type="range" name="poin" min="1" max="10" step="1" value="5" oninput="document.getElementById('cPoinL').textContent=this.value">
+                                    <span class="slider-value" id="cPoinL">5</span>
+                                </div>
+                                <div style="display:flex;justify-content:space-between;font-size:0.7rem;color:var(--gray);padding:0 2px;"><span>Ringan</span><span>Sedang</span><span>Berat</span></div>
+                            </div>
+                            <div class="mb-3"><label class="form-label">Sanksi <span class="text-danger">*</span></label><input type="text" name="sanksi" class="form-control" required placeholder="Sanksi yang diberikan"></div>
+                        </div>
+                    </div>
+                </div>
+                <div class="modal-footer"><button type="button" class="btn btn-light" data-bs-dismiss="modal" style="border-radius:10px;font-weight:500;">Batal</button><button type="submit" class="btn-primary-modern"><i class="bi bi-save"></i> Simpan</button></div>
+            </form>
+        </div>
+    </div>
 </div>
 
-
-<!-- Nama Pelanggaran -->
-
-<div class="full-group">
-
-<label>Nama Pelanggaran</label>
-
-
-<textarea 
-name="pelanggaran"
-required></textarea>
-
-
+<!-- ======== MODAL EDIT ======== -->
+<div class="modal fade modal-custom" id="modalEdit" tabindex="-1">
+    <div class="modal-dialog modal-xl modal-dialog-centered">
+        <div class="modal-content">
+            <div class="modal-header"><h5 class="modal-title fw-bold"><i class="bi bi-pencil me-2"></i>Edit Pelanggaran</h5><button type="button" class="btn-close" data-bs-dismiss="modal"></button></div>
+            <form id="formEdit" method="POST" enctype="multipart/form-data">@csrf @method('PUT')
+                <div class="modal-body">
+                    <div class="row">
+                        <div class="col-md-6">
+                            <div class="mb-3">
+                                <label class="form-label">Nama Siswa <span class="text-danger">*</span></label>
+                                <select name="nama_siswa" id="eNama" class="form-select" required onchange="fillKelas(this,'eKelas')">
+                                    <option value="">-- Pilih --</option>
+                                    @foreach($siswaList as $s)<option value="{{ $s->nama_siswa }}" data-kelas="{{ $s->kelas }}">{{ $s->nama_siswa }} ({{ $s->kelas }})</option>@endforeach
+                                </select>
+                            </div>
+                            <div class="mb-3"><label class="form-label">Kelas</label><input type="text" id="eKelas" name="kelas" class="form-control" readonly required></div>
+                            <div class="mb-3"><label class="form-label">Tanggal <span class="text-danger">*</span></label><input type="date" name="tanggal" id="eTgl" class="form-control" required></div>
+                            <div class="mb-3"><label class="form-label">Kategori <span class="text-danger">*</span></label>
+                                <select name="kategori" id="eKat" class="form-select" required>
+                                    <option value="Ringan">Ringan</option>
+                                    <option value="Sedang">Sedang</option>
+                                    <option value="Berat">Berat</option>
+                                </select>
+                            </div>
+                            <div class="mb-3"><label class="form-label">Upload Bukti</label><input type="file" name="file" class="form-control" accept=".pdf,.jpg,.jpeg,.png"><small id="eFileInfo" style="color:var(--gray);"></small></div>
+                        </div>
+                        <div class="col-md-6">
+                            <div class="mb-3"><label class="form-label">Pelanggaran <span class="text-danger">*</span></label><textarea name="pelanggaran" id="ePel" class="form-control" rows="2" required></textarea></div>
+                            <div class="mb-3"><label class="form-label">Keterangan</label><textarea name="keterangan" id="eKet" class="form-control" rows="2"></textarea></div>
+                            <div class="mb-3">
+                                <label class="form-label">Poin <span class="text-danger">*</span></label>
+                                <div class="slider-wrapper">
+                                    <input type="range" name="poin" id="ePoinSlider" min="1" max="10" step="1" value="5" oninput="document.getElementById('ePoinL').textContent=this.value">
+                                    <span class="slider-value" id="ePoinL">5</span>
+                                </div>
+                                <div style="display:flex;justify-content:space-between;font-size:0.7rem;color:var(--gray);padding:0 2px;"><span>Ringan</span><span>Sedang</span><span>Berat</span></div>
+                            </div>
+                            <div class="mb-3"><label class="form-label">Sanksi <span class="text-danger">*</span></label><input type="text" name="sanksi" id="eSanksi" class="form-control" required></div>
+                        </div>
+                    </div>
+                </div>
+                <div class="modal-footer"><button type="button" class="btn btn-light" data-bs-dismiss="modal" style="border-radius:10px;font-weight:500;">Batal</button><button type="submit" class="btn-primary-modern"><i class="bi bi-check-lg"></i> Simpan</button></div>
+            </form>
+        </div>
+    </div>
 </div>
-
-<!-- Tambahan Poin -->
-
-<div class="form-row">
-
-
-<div class="form-group">
-
-<label>Poin</label>
-
-<div class="poin-box">
-
-<input 
-type="number"
-name="poin"
-required>
-
-<div class="icon">
-▦
-</div>
-
-</div>
-
-</div>
-
-</div>
-
-
-
-
-
-<!-- Tambahan Sanksi -->
-
-
-<div class="full-group">
-
-
-<label>Nama Sanksi
-</label>
-
-
-<textarea 
-name="sanksi"
-required></textarea>
-
-
-</div>
-
-<div class="mb-3">
-
-<label>
-    Upload Bukti (PDF / Gambar)
-</label>
-
-
-<div class="drop-area" id="drop-area">
-
-    <p>
-        📂 Tarik & Lepaskan file disini
-        <br>
-        atau klik untuk memilih file
-    </p>
-
-
-    <input 
-        type="file"
-        name="file"
-        id="file"
-        accept=".pdf,.jpg,.jpeg,.png"
-        hidden>
-
-
-    <div id="file-name"></div>
-
-</div>
-
-
-</div>
-
-
-
-<style>
-
-.drop-area{
-
-    width:100%;
-    height:150px;
-    border:2px dashed #287b8c;
-    background:#f5f5f5;
-    display:flex;
-    justify-content:center;
-    align-items:center;
-    text-align:center;
-    cursor:pointer;
-    border-radius:10px;
-    transition:0.3s;
-
-}
-
-
-.drop-area:hover{
-
-    background:#e8f8fa;
-
-}
-
-
-.drop-area.active{
-
-    background:#d9f5f7;
-    border-color:#168bd4;
-
-}
-
-
-#file-name{
-
-    margin-top:10px;
-    font-weight:bold;
-
-}
-
-</style>
-
-
 
 <script>
-
-const dropArea = document.getElementById('drop-area');
-const fileInput = document.getElementById('file');
-const fileName = document.getElementById('file-name');
-
-
-
-// klik area upload
-
-dropArea.addEventListener('click',()=>{
-
-    fileInput.click();
-
-});
-
-
-
-
-// pilih file
-
-fileInput.addEventListener('change',()=>{
-
-    showFile(fileInput.files[0]);
-
-});
-
-
-
-
-// drag masuk
-
-dropArea.addEventListener('dragover',(e)=>{
-
-    e.preventDefault();
-
-    dropArea.classList.add('active');
-
-});
-
-
-
-
-// drag keluar
-
-dropArea.addEventListener('dragleave',()=>{
-
-    dropArea.classList.remove('active');
-
-});
-
-
-
-
-// drop file
-
-dropArea.addEventListener('drop',(e)=>{
-
-    e.preventDefault();
-
-
-    dropArea.classList.remove('active');
-
-
-    fileInput.files = e.dataTransfer.files;
-
-
-    showFile(e.dataTransfer.files[0]);
-
-});
-
-
-// tampil nama file
-
-function showFile(file){
-
-
-    if(file){
-
-        fileName.innerHTML =
-        "📎 File : " + file.name;
-
-    }
-
+function fillKelas(s,t){var o=s.options[s.selectedIndex];document.getElementById(t).value=o?o.dataset.kelas:''}
+var ds={!! $pelanggarans->map(function($d){return['id'=>$d->id,'nama_siswa'=>$d->nama_siswa,'kelas'=>$d->kelas,'tanggal'=>$d->tanggal,'kategori'=>$d->kategori,'pelanggaran'=>$d->pelanggaran,'keterangan'=>$d->keterangan,'poin'=>$d->poin,'sanksi'=>$d->sanksi,'file'=>$d->file];})->toJson() !!};
+function showDetail(id){
+    var d=ds.find(function(x){return x.id==id});if(!d)return;
+    document.getElementById('dNama').textContent=d.nama_siswa;document.getElementById('dKelas').textContent=d.kelas;
+    document.getElementById('dKategori').textContent=d.kategori;document.getElementById('dTgl').textContent=d.tanggal;
+    document.getElementById('dPel').textContent=d.pelanggaran;
+    var ketRow=document.getElementById('dKeteranganRow');
+    if(d.keterangan){ketRow.style.display='';document.getElementById('dKet').textContent=d.keterangan;}
+    else ketRow.style.display='none';
+    var s='';for(var i=1;i<=10;i++)s+=i<=d.poin?'<i class="bi bi-exclamation-triangle-fill" style="color:#ef4444;font-size:0.85rem;"></i> ':'<i class="bi bi-exclamation-triangle" style="color:#ddd;font-size:0.85rem;"></i> ';
+    document.getElementById('dPoin').innerHTML='<span style="font-weight:700;">'+d.poin+'/10</span> '+s;
+    document.getElementById('dSanksi').textContent=d.sanksi;
+    var f=document.getElementById('dFile');
+    if(d.file){
+        var ext=d.file.split('.').pop().toLowerCase();
+        if(ext=='jpg'||ext=='jpeg'||ext=='png')f.innerHTML='<img src="/storage/'+d.file+'" alt="Bukti" style="width:100%;max-height:200px;object-fit:contain;display:block;background:#f8fafc;">';
+        else if(ext=='pdf')f.innerHTML='<iframe src="/storage/'+d.file+'" style="width:100%;height:200px;border:none;"></iframe>';
+        else f.innerHTML='<div class="file-placeholder"><a href="/storage/'+d.file+'" target="_blank" style="color:var(--primary);font-weight:600;">Download file</a></div>';
+    } else f.innerHTML='<div class="file-placeholder">Tidak ada file</div>';
 }
-
+function openEdit(id){
+    var d=ds.find(function(x){return x.id==id});if(!d)return;
+    document.getElementById('formEdit').action='/pelanggaran/'+id;
+    var fields={eNama:'nama_siswa',eKelas:'kelas',eTgl:'tanggal',eKat:'kategori',ePel:'pelanggaran',eKet:'keterangan',eSanksi:'sanksi'};
+    for(var k in fields)document.getElementById(k).value=d[fields[k]];
+    document.getElementById('ePoinSlider').value=d.poin;document.getElementById('ePoinL').textContent=d.poin;
+    document.getElementById('eFileInfo').innerHTML=d.file?'<i class="bi bi-paperclip"></i> File: '+d.file:'';
+}
 </script>
+@endif
 
-<div class="submit-area">
-
-<button type="submit">
-Submit
-</button>
-
+<!-- ======== MODAL CONFIRM DELETE ======== -->
+<div class="modal fade" id="modalConfirm" tabindex="-1">
+    <div class="modal-dialog modal-sm modal-dialog-centered">
+        <div class="modal-content" style="border:none;border-radius:16px;">
+            <div class="modal-body text-center py-4">
+                <div style="width:60px;height:60px;background:#fef2f2;border-radius:50%;display:flex;align-items:center;justify-content:center;margin:0 auto 16px;"><i class="bi bi-trash3" style="color:#ef4444;font-size:1.8rem;"></i></div>
+                <h6 class="fw-bold mb-2">Konfirmasi Hapus</h6>
+                <p class="mb-0" style="color:var(--gray);font-size:0.85rem;">Yakin ingin menghapus data <strong id="confirmName"></strong>?</p>
+            </div>
+            <div class="modal-footer justify-content-center border-0 pt-0 pb-4">
+                <button type="button" class="btn btn-light px-4" data-bs-dismiss="modal" style="border-radius:10px;font-weight:500;">Batal</button>
+                <form id="formDelete" method="POST" style="display:inline">@csrf @method('DELETE')
+                    <button type="submit" class="btn" style="background:#ef4444;color:#fff;border-radius:10px;padding:10px 24px;font-weight:600;border:none;"><i class="bi bi-trash me-1"></i> Ya, Hapus</button>
+                </form>
+            </div>
+        </div>
+    </div>
 </div>
-
-
-
-
-</form>
-
-
-</div>
-
-
+<script>
+function confirmDelete(i,n){document.getElementById('confirmName').textContent=n;document.getElementById('formDelete').action='/pelanggaran/'+i;}
+</script>
 @endsection

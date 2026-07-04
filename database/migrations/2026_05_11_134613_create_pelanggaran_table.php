@@ -15,6 +15,9 @@ return new class extends Migration
             $table->date('tanggal');
             $table->string('kategori');
             $table->text('pelanggaran');
+            $table->integer('poin');
+            $table->string('sanksi');
+            $table->string('file')->nullable();
             $table->timestamps();
         });
     }

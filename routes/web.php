@@ -6,6 +6,7 @@ use App\Http\Controllers\DashboardController;
 use App\Http\Controllers\PelanggaranController;
 use App\Http\Controllers\SiswaController;
 use App\Http\Controllers\CatatanPelanggaranController;
+use App\Http\Controllers\UserController;
 
 // Halaman awal diarahkan ke login
 Route::get('/', function () {
@@ -17,47 +18,46 @@ Route::get('/login', [AuthController::class, 'showLoginForm'])->name('Auth.login
 Route::post('/login', [AuthController::class, 'login'])->name('Auth.login');
 Route::post('/logout', [AuthController::class, 'logout'])->name('logout');
 
-// LUPA PASSWORD
-Route::get('/forgot-password', [AuthController::class, 'showForgotPasswordForm'])->name('password.request');
-Route::post('/forgot-password', [AuthController::class, 'sendResetLink'])->name('password.email');
-
-// HALAMAN SETELAH LOGIN
+// HALAMAN SETELAH LOGIN (read-only untuk semua role)
 Route::middleware('auth')->group(function () {
 
     Route::get('/dashboard', [DashboardController::class, 'index'])->name('dashboard');
 
-    // SISWA
+    // SISWA - read
     Route::get('/siswa', [SiswaController::class, 'index'])->name('Siswa.index');
-    Route::post('/siswa', [SiswaController::class, 'store'])->name('Siswa.store');
-    Route::get('/siswa/{id}/edit', [SiswaController::class, 'edit'])->name('Siswa.edit');
-    Route::put('/siswa/{id}', [SiswaController::class, 'update'])->name('Siswa.update');
-    Route::delete('/siswa/{id}', [SiswaController::class, 'destroy'])->name('Siswa.destroy');
 
-    // PELANGGARAN
+    // PELANGGARAN - read
     Route::get('/pelanggaran', [PelanggaranController::class, 'index'])->name('Pelanggaran.index');
-    Route::get('/pelanggaran/create', [PelanggaranController::class, 'create'])->name('pelanggaran.create');
-    Route::post('/pelanggaran', [PelanggaranController::class, 'store'])->name('pelanggaran.store');
-    Route::get('/pelanggaran/{id}/edit', [PelanggaranController::class, 'edit'])->name('pelanggaran.edit');
-    Route::put('/pelanggaran/{id}', [PelanggaranController::class, 'update'])->name('pelanggaran.update');
-    Route::delete('/pelanggaran/{id}', [PelanggaranController::class, 'destroy'])->name('pelanggaran.destroy');
 
-    // CATATAN PELANGGARAN
-    Route::get('/catatanpelanggaran', [CatatanPelanggaranController::class, 'index'])
-        ->name('CatatanPelanggaran.index');
+    // REDIRECT: Catatan Pelanggaran digabung ke Pelanggaran
+    Route::get('/catatanpelanggaran', function () {
+        return redirect()->route('Pelanggaran.index');
+    });
+    Route::get('/catatanpelanggaran/{any}', function () {
+        return redirect()->route('Pelanggaran.index');
+    })->where('any', '.*');
 
-    Route::get('/catatanpelanggaran/create', [CatatanPelanggaranController::class, 'create'])
-        ->name('CatatanPelanggaran.create');
+    // --- CRUD: HANYA UNTUK ADMIN ---
+    Route::middleware('role:admin')->group(function () {
 
-    Route::post('/catatanpelanggaran', [CatatanPelanggaranController::class, 'store'])
-        ->name('CatatanPelanggaran.store');
+        // MANAJEMEN AKUN
+        Route::get('/users', [UserController::class, 'index'])->name('User.index');
+        Route::post('/users', [UserController::class, 'store'])->name('User.store');
+        Route::put('/users/{id}', [UserController::class, 'update'])->name('User.update');
+        Route::delete('/users/{id}', [UserController::class, 'destroy'])->name('User.destroy');
 
-    Route::get('/catatanpelanggaran/{id}/edit', [CatatanPelanggaranController::class, 'edit'])
-        ->name('CatatanPelanggaran.edit');
+        // SISWA
+        Route::post('/siswa', [SiswaController::class, 'store'])->name('Siswa.store');
+        Route::get('/siswa/{id}/edit', [SiswaController::class, 'edit'])->name('Siswa.edit');
+        Route::put('/siswa/{id}', [SiswaController::class, 'update'])->name('Siswa.update');
+        Route::delete('/siswa/{id}', [SiswaController::class, 'destroy'])->name('Siswa.destroy');
 
-    Route::put('/catatanpelanggaran/{id}', [CatatanPelanggaranController::class, 'update'])
-        ->name('CatatanPelanggaran.update');
-
-    Route::delete('/catatanpelanggaran/{id}', [CatatanPelanggaranController::class, 'destroy'])
-        ->name('CatatanPelanggaran.destroy');
+        // PELANGGARAN
+        Route::get('/pelanggaran/create', [PelanggaranController::class, 'create'])->name('Pelanggaran.create');
+        Route::post('/pelanggaran', [PelanggaranController::class, 'store'])->name('Pelanggaran.store');
+        Route::get('/pelanggaran/{id}/edit', [PelanggaranController::class, 'edit'])->name('Pelanggaran.edit');
+        Route::put('/pelanggaran/{id}', [PelanggaranController::class, 'update'])->name('Pelanggaran.update');
+        Route::delete('/pelanggaran/{id}', [PelanggaranController::class, 'destroy'])->name('Pelanggaran.destroy');
+    });
 
 });

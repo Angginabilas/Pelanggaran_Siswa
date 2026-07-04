@@ -4,12 +4,14 @@ use Illuminate\Database\Migrations\Migration;
 use Illuminate\Database\Schema\Blueprint;
 use Illuminate\Support\Facades\Schema;
 
-class AddFieldsToCatatanPelanggaransTable extends Migration
+class CreateCatatanPelanggaransTable extends Migration
 {
     public function up()
     {
-        Schema::table('catatan_pelanggaran', function (Blueprint $table) {
-            $table->string('nama_siswa')->after('id');
+        Schema::create('catatan_pelanggaran', function (Blueprint $table) {
+            $table->id();
+            $table->string('nama_siswa');
+            $table->string('kelas');
             $table->string('jenis_pelanggaran');
             $table->date('tanggal');
             $table->text('keterangan');
@@ -21,17 +23,6 @@ class AddFieldsToCatatanPelanggaransTable extends Migration
 
     public function down()
     {
-        Schema::table('catatan_pelanggaran', function (Blueprint $table) {
-            $table->dropColumn([
-                'nama_siswa',
-                'kelas',
-                'jenis_pelanggaran',
-                'tanggal',
-                'keterangan',
-                'poin',
-                'sanksi',
-                'file',
-            ]);
-        });
+        Schema::dropIfExists('catatan_pelanggaran');
     }
 }

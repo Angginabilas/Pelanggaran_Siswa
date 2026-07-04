@@ -10,15 +10,24 @@ class Siswa extends Model
     use HasFactory;
 
     protected $fillable = [
-        'nama_siswa',    // ✅ Sesuaikan dengan nama kolom di database
+        'nama_siswa',
         'kelas',
         'jenis_kelamin',
         'alamat_siswa',
         'total_poin'
     ];
 
-    // ✅ Mapping agar bisa pakai nama yang lebih mudah di controller
     protected $casts = [
         'total_poin' => 'integer'
     ];
+
+    public function pelanggarans()
+    {
+        return $this->hasMany(Pelanggaran::class, 'nama_siswa', 'nama_siswa');
+    }
+
+    public function catatanPelanggarans()
+    {
+        return $this->hasMany(CatatanPelanggaran::class, 'nama_siswa', 'nama_siswa');
+    }
 }

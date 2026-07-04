@@ -19,5 +19,10 @@ class CatatanPelanggaran extends Model
         'file',
     ];
 
-     public $timestamps = false;
+    public $timestamps = false;
+
+    public function siswa()
+    {
+        return $this->belongsTo(Siswa::class, 'nama_siswa', 'nama_siswa');
+    }
 }

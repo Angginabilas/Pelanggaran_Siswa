@@ -10,22 +10,20 @@ class SiswaController extends Controller
     // Menampilkan daftar siswa
     public function index()
     {
-        $siswas = Siswa::latest()->get();
+        $siswas = Siswa::latest()->paginate(10);
         return view('Siswa.index', compact('siswas'));
     }
 
     // Menyimpan data siswa baru
     public function store(Request $request)
     {
-        // Validasi input sesuai nama field database
         $request->validate([
-            'nama_siswa' => 'required',
-            'kelas' => 'required',
-            'jenis_kelamin' => 'required',
-            'alamat_siswa' => 'required',
+            'nama_siswa' => 'required|max:255',
+            'kelas' => 'required|max:50',
+            'jenis_kelamin' => 'required|in:Laki-laki,Perempuan',
+            'alamat_siswa' => 'required|max:500',
         ]);
 
-        // Simpan data
         Siswa::create([
             'nama_siswa'   => $request->nama_siswa,
             'kelas'        => $request->kelas,
@@ -49,10 +47,10 @@ class SiswaController extends Controller
     public function update(Request $request, $id)
     {
         $request->validate([
-            'nama_siswa' => 'required',
-            'kelas' => 'required',
-            'jenis_kelamin' => 'required',
-            'alamat_siswa' => 'required',
+            'nama_siswa' => 'required|max:255',
+            'kelas' => 'required|max:50',
+            'jenis_kelamin' => 'required|in:Laki-laki,Perempuan',
+            'alamat_siswa' => 'required|max:500',
             'total_poin' => 'required|integer|min:0',
         ]);
 

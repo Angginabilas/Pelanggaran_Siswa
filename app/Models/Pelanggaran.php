@@ -9,15 +9,21 @@ class Pelanggaran extends Model
 {
     use HasFactory;
 
-    protected $table = 'pelanggarans'; // nama tabel di database
+    protected $table = 'pelanggarans';
     protected $fillable = [
         'nama_siswa',
         'kelas',
         'tanggal',
         'kategori',
         'pelanggaran',
+        'keterangan',
         'poin',
         'sanksi',
         'file',
     ];
+
+    public function siswa()
+    {
+        return $this->belongsTo(Siswa::class, 'nama_siswa', 'nama_siswa');
+    }
 }
