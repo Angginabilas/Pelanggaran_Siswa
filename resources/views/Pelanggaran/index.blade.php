@@ -250,9 +250,11 @@ function updateSliderBg(slider){
 document.addEventListener('DOMContentLoaded',function(){
     var cSlide=document.querySelector('.slider-wrapper input[name=poin]');
     if(cSlide){updateSliderBg(cSlide);}
-    var eSlide=document.getElementById('ePoinSlider');
-    if(eSlide&&!eSlide.value){eSlide.value=5;updateSliderBg(eSlide);}
 });
+</script>
+@endif
+
+<script>
 var ds={!! $pelanggarans->map(function($d){return['id'=>$d->id,'nama_siswa'=>$d->nama_siswa,'kelas'=>$d->kelas,'tanggal'=>$d->tanggal,'kategori'=>$d->kategori,'pelanggaran'=>$d->pelanggaran,'keterangan'=>$d->keterangan,'poin'=>$d->poin,'sanksi'=>$d->sanksi,'file'=>$d->file];})->toJson() !!};
 function showDetail(id){
     var d=ds.find(function(x){return x.id==id});if(!d)return;
@@ -273,6 +275,14 @@ function showDetail(id){
         else f.innerHTML='<div class="file-placeholder"><a href="/storage/'+d.file+'" target="_blank" style="color:var(--primary);font-weight:600;">Download file</a></div>';
     } else f.innerHTML='<div class="file-placeholder">Tidak ada file</div>';
 }
+</script>
+
+@if(Auth::user()->role === 'admin')
+<script>
+document.addEventListener('DOMContentLoaded',function(){
+    var eSlide=document.getElementById('ePoinSlider');
+    if(eSlide&&!eSlide.value){eSlide.value=5;updateSliderBg(eSlide);}
+});
 function openEdit(id){
     var d=ds.find(function(x){return x.id==id});if(!d)return;
     document.getElementById('formEdit').action='/pelanggaran/'+id;
