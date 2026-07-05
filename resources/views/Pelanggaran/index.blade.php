@@ -8,13 +8,17 @@
     .row-click:hover { background: #eef2ff !important; }
     .action-btn-group { white-space: nowrap; }
     .slider-wrapper { display: flex; align-items: center; gap: 12px; }
-    .slider-wrapper input[type=range] { flex: 1; height: 6px; -webkit-appearance: none; appearance: none; background: #e2e8f0; border-radius: 3px; outline: none; }
-    .slider-wrapper input[type=range]::-webkit-slider-thumb { -webkit-appearance: none; appearance: none; width: 20px; height: 20px; border-radius: 50%; background: #4f46e5; cursor: pointer; border: 2px solid #fff; box-shadow: 0 1px 4px rgba(0,0,0,0.2); }
-    .slider-value { min-width: 36px; height: 36px; background: #4f46e5; color: #fff; border-radius: 10px; display: flex; align-items: center; justify-content: center; font-weight: 700; font-size: 0.9rem; }
+    .slider-wrapper input[type=range] { flex: 1; height: 6px; -webkit-appearance: none; appearance: none; border-radius: 3px; outline: none; background: #e2e8f0; }
+    .slider-wrapper input[type=range]::-webkit-slider-runnable-track { height: 6px; border-radius: 3px; background: inherit; }
+    .slider-wrapper input[type=range]::-moz-range-track { height: 6px; border-radius: 3px; border: none; background: inherit; }
+    .slider-wrapper input[type=range]::-moz-range-thumb { width: 22px; height: 22px; border-radius: 50%; cursor: pointer; border: 3px solid #fff; background: #4f46e5; box-shadow: 0 2px 8px rgba(0,0,0,0.2); }
+    .slider-wrapper input[type=range]::-webkit-slider-thumb { -webkit-appearance: none; appearance: none; width: 22px; height: 22px; border-radius: 50%; cursor: pointer; border: 3px solid #fff; background: #4f46e5; box-shadow: 0 2px 8px rgba(0,0,0,0.2); }
+    .slider-value { min-width: 40px; height: 40px; border-radius: 12px; background: #4f46e5; color: #fff; display: flex; align-items: center; justify-content: center; font-weight: 800; font-size: 1rem; transition: background 0.2s; }
     .file-preview-box { border: 1px solid #e2e8f0; border-radius: 12px; overflow: hidden; background: #f8fafc; }
     .file-preview-box img { width: 100%; max-height: 200px; object-fit: contain; display: block; border-radius:8px; }
     .file-preview-box iframe { width: 100%; height: 200px; border: none; border-radius:8px; }
     .file-preview-box .file-placeholder { padding: 20px; text-align: center; color: var(--gray); font-size:0.85rem; }
+    .slider-indicator { font-size:0.75rem; font-weight:500; margin-top:4px; transition: color 0.2s; }
 </style>
 
 <div class="card-modern">
@@ -137,7 +141,7 @@
                                     <option value="Berat">Berat</option>
                                 </select>
                             </div>
-                            <div class="mb-3"><label class="form-label">Upload Bukti</label><input type="file" name="file" class="form-control" accept=".pdf,.jpg,.jpeg,.png"></div>
+                            <div class="mb-3"><label class="form-label">Upload Bukti</label><input type="file" name="file" id="cFile" class="form-control" accept=".pdf,.jpg,.jpeg,.png" onchange="previewFile(this,'cPreview')"><div id="cPreview" class="file-preview-box" style="margin-top:6px;display:none;max-height:150px;overflow:hidden;"></div></div>
                         </div>
                         <div class="col-md-6">
                             <div class="mb-3"><label class="form-label">Pelanggaran <span class="text-danger">*</span></label><textarea name="pelanggaran" class="form-control" rows="2" required placeholder="Deskripsi pelanggaran"></textarea></div>
@@ -145,10 +149,18 @@
                             <div class="mb-3">
                                 <label class="form-label">Poin <span class="text-danger">*</span></label>
                                 <div class="slider-wrapper">
-                                    <input type="range" name="poin" min="1" max="10" step="1" value="5" oninput="document.getElementById('cPoinL').textContent=this.value">
+                                    <input type="range" name="poin" min="1" max="10" step="1" value="5" oninput="var v=this.value;var el=document.getElementById('cPoinL');el.textContent=v;var r=document.getElementById('cPoinRange');if(v<=3){r.style.color='#10b981';r.textContent='Poin: '+v+' (Ringan)';}else if(v<=7){r.style.color='#f59e0b';r.textContent='Poin: '+v+' (Sedang)';}else{r.style.color='#ef4444';r.textContent='Poin: '+v+' (Berat)';}updateSliderBg(this)">
                                     <span class="slider-value" id="cPoinL">5</span>
                                 </div>
-                                <div style="display:flex;justify-content:space-between;font-size:0.7rem;color:var(--gray);padding:0 2px;"><span>Ringan</span><span>Sedang</span><span>Berat</span></div>
+                                <div style="display:flex;justify-content:space-between;font-size:0.75rem;padding:0 2px;margin-top:2px;">
+                                    <span style="color:#10b981;font-weight:600;">Ringan</span>
+                                    <span style="color:#f59e0b;font-weight:600;">Sedang</span>
+                                    <span style="color:#ef4444;font-weight:600;">Berat</span>
+                                </div>
+                                <div style="display:flex;justify-content:space-between;font-size:0.65rem;color:var(--gray);padding:0 2px;">
+                                    <span>1 - 3</span><span>4 - 7</span><span>8 - 10</span>
+                                </div>
+                                <div id="cPoinRange" class="slider-indicator" style="color:#f59e0b;">Poin: 5 (Sedang)</div>
                             </div>
                             <div class="mb-3"><label class="form-label">Sanksi <span class="text-danger">*</span></label><input type="text" name="sanksi" class="form-control" required placeholder="Sanksi yang diberikan"></div>
                         </div>
@@ -185,7 +197,7 @@
                                     <option value="Berat">Berat</option>
                                 </select>
                             </div>
-                            <div class="mb-3"><label class="form-label">Upload Bukti</label><input type="file" name="file" class="form-control" accept=".pdf,.jpg,.jpeg,.png"><small id="eFileInfo" style="color:var(--gray);"></small></div>
+                            <div class="mb-3"><label class="form-label">Upload Bukti</label><input type="file" name="file" id="eFile" class="form-control" accept=".pdf,.jpg,.jpeg,.png" onchange="previewFile(this,'ePreview')"><small id="eFileInfo" style="color:var(--gray);"></small><div id="ePreview" class="file-preview-box" style="margin-top:6px;display:none;max-height:150px;overflow:hidden;"></div></div>
                         </div>
                         <div class="col-md-6">
                             <div class="mb-3"><label class="form-label">Pelanggaran <span class="text-danger">*</span></label><textarea name="pelanggaran" id="ePel" class="form-control" rows="2" required></textarea></div>
@@ -193,10 +205,18 @@
                             <div class="mb-3">
                                 <label class="form-label">Poin <span class="text-danger">*</span></label>
                                 <div class="slider-wrapper">
-                                    <input type="range" name="poin" id="ePoinSlider" min="1" max="10" step="1" value="5" oninput="document.getElementById('ePoinL').textContent=this.value">
+                                    <input type="range" name="poin" id="ePoinSlider" min="1" max="10" step="1" value="5" oninput="var v=this.value;document.getElementById('ePoinL').textContent=v;var r=document.getElementById('ePoinRange');if(v<=3){r.style.color='#10b981';r.textContent='Poin: '+v+' (Ringan)';}else if(v<=7){r.style.color='#f59e0b';r.textContent='Poin: '+v+' (Sedang)';}else{r.style.color='#ef4444';r.textContent='Poin: '+v+' (Berat)';}updateSliderBg(this)">
                                     <span class="slider-value" id="ePoinL">5</span>
                                 </div>
-                                <div style="display:flex;justify-content:space-between;font-size:0.7rem;color:var(--gray);padding:0 2px;"><span>Ringan</span><span>Sedang</span><span>Berat</span></div>
+                                <div style="display:flex;justify-content:space-between;font-size:0.75rem;padding:0 2px;margin-top:2px;">
+                                    <span style="color:#10b981;font-weight:600;">Ringan</span>
+                                    <span style="color:#f59e0b;font-weight:600;">Sedang</span>
+                                    <span style="color:#ef4444;font-weight:600;">Berat</span>
+                                </div>
+                                <div style="display:flex;justify-content:space-between;font-size:0.65rem;color:var(--gray);padding:0 2px;">
+                                    <span>1 - 3</span><span>4 - 7</span><span>8 - 10</span>
+                                </div>
+                                <div id="ePoinRange" class="slider-indicator" style="color:#f59e0b;">Poin: 5 (Sedang)</div>
                             </div>
                             <div class="mb-3"><label class="form-label">Sanksi <span class="text-danger">*</span></label><input type="text" name="sanksi" id="eSanksi" class="form-control" required></div>
                         </div>
@@ -210,6 +230,29 @@
 
 <script>
 function fillKelas(s,t){var o=s.options[s.selectedIndex];document.getElementById(t).value=o?o.dataset.kelas:''}
+function previewFile(input,target){
+    var el=document.getElementById(target);if(!input.files||!input.files[0]){el.style.display='none';return;}
+    var f=input.files[0],ext=f.name.split('.').pop().toLowerCase(),reader=new FileReader();
+    el.style.display='block';
+    if(ext=='jpg'||ext=='jpeg'||ext=='png'){
+        reader.onload=function(e){el.innerHTML='<img src=\"'+e.target.result+'\" style=\"width:100%;max-height:120px;object-fit:contain;border-radius:8px;\">';};
+        reader.readAsDataURL(f);
+    }else if(ext=='pdf'){
+        el.innerHTML='<div style=\"padding:10px;text-align:center;color:var(--gray);font-size:0.85rem;background:#fef2f2;border-radius:8px;\"><i class=\"bi bi-file-earmark-pdf\" style=\"font-size:1.8rem;display:block;margin-bottom:4px;color:#ef4444;\"></i>'+f.name+'</div>';
+    }else{el.style.display='none';}
+}
+function updateSliderBg(slider){
+    var v=parseInt(slider.value),pct=((v-1)/9)*100;
+    if(v<=3)slider.style.background='linear-gradient(to right, #10b981 '+pct+'%, #e2e8f0 '+pct+'%)';
+    else if(v<=7)slider.style.background='linear-gradient(to right, #10b981 33%, #f59e0b '+Math.round((pct-33)*1.5)+'%, #e2e8f0 '+pct+'%)';
+    else slider.style.background='linear-gradient(to right, #10b981 33%, #f59e0b 66%, #ef4444 '+Math.round((pct-66)*1.5)+'%, #e2e8f0 '+pct+'%)';
+}
+document.addEventListener('DOMContentLoaded',function(){
+    var cSlide=document.querySelector('.slider-wrapper input[name=poin]');
+    if(cSlide){updateSliderBg(cSlide);}
+    var eSlide=document.getElementById('ePoinSlider');
+    if(eSlide&&!eSlide.value){eSlide.value=5;updateSliderBg(eSlide);}
+});
 var ds={!! $pelanggarans->map(function($d){return['id'=>$d->id,'nama_siswa'=>$d->nama_siswa,'kelas'=>$d->kelas,'tanggal'=>$d->tanggal,'kategori'=>$d->kategori,'pelanggaran'=>$d->pelanggaran,'keterangan'=>$d->keterangan,'poin'=>$d->poin,'sanksi'=>$d->sanksi,'file'=>$d->file];})->toJson() !!};
 function showDetail(id){
     var d=ds.find(function(x){return x.id==id});if(!d)return;
@@ -235,8 +278,16 @@ function openEdit(id){
     document.getElementById('formEdit').action='/pelanggaran/'+id;
     var fields={eNama:'nama_siswa',eKelas:'kelas',eTgl:'tanggal',eKat:'kategori',ePel:'pelanggaran',eKet:'keterangan',eSanksi:'sanksi'};
     for(var k in fields)document.getElementById(k).value=d[fields[k]];
-    document.getElementById('ePoinSlider').value=d.poin;document.getElementById('ePoinL').textContent=d.poin;
-    document.getElementById('eFileInfo').innerHTML=d.file?'<i class="bi bi-paperclip"></i> File: '+d.file:'';
+    var el=document.getElementById('ePoinSlider');el.value=d.poin;
+    var v=d.poin;document.getElementById('ePoinL').textContent=v;var r=document.getElementById('ePoinRange');if(v<=3){r.style.color='#10b981';r.textContent='Poin: '+v+' (Ringan)';}else if(v<=7){r.style.color='#f59e0b';r.textContent='Poin: '+v+' (Sedang)';}else{r.style.color='#ef4444';r.textContent='Poin: '+v+' (Berat)';}
+    updateSliderBg(el);
+    var fi=document.getElementById('eFileInfo');
+    if(d.file){
+        var ext=d.file.split('.').pop().toLowerCase();
+        if(ext=='jpg'||ext=='jpeg'||ext=='png'){fi.innerHTML='<img src=\"/storage/'+d.file+'\" style=\"width:100%;max-height:120px;object-fit:contain;border-radius:8px;margin-top:4px;\">';}
+        else if(ext=='pdf'){fi.innerHTML='<div style=\"padding:8px;text-align:center;background:#fef2f2;border-radius:8px;margin-top:4px;\"><i class=\"bi bi-file-earmark-pdf\" style=\"color:#ef4444;font-size:1.5rem;display:block;margin-bottom:2px;\"></i>'+d.file+'</div>';}
+        else{fi.innerHTML='<i class=\"bi bi-paperclip\"></i> File: '+d.file+'';}
+    }else{fi.innerHTML='';}
 }
 </script>
 @endif
